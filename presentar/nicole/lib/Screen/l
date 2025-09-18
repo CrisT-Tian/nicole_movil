@@ -1,0 +1,12 @@
+void _submit() {
+  if (passwordController.text != confirmPasswordController.text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Las contraseñas no coinciden")),
+    );
+    return;
+  }
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const ChatScreen()), // ← ahora va a chat
+  );
+}
