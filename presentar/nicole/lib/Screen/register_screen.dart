@@ -32,35 +32,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
 
-          // Contenedor blur
-          Container(
-            margin: EdgeInsets.only(
-              top: MediaQuery.of(context).size.height * 0.35,
-            ),
-            height: MediaQuery.of(context).size.height * 0.65,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.65,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 255, 240, 210).withOpacity(0.3),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
+          // Contenido con scroll y blur
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 0),
+
+                // Icono del gato (ahora dentro del scroll)
+                Image.asset(
+                  'assets/icono.png',
+                  height: 250,
+                ),
+                const SizedBox(height:2 ),
+
+                // Contenedor con efecto blur
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
-                  child: SingleChildScrollView(
-                    child: Padding(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 240, 210).withOpacity(0.3),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 60),
                           const Text(
                             '¡Regístrate ya!',
                             style: TextStyle(
@@ -69,85 +74,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               color: Colors.black,
                             ),
                           ),
+                          const SizedBox(height: 25),
+
+                          // Campos del formulario
+                          _buildTextField('NOMBRE:', _nameController),
+                          const SizedBox(height: 15),
+                          _buildTextField('CORREO:', _emailController),
+                          const SizedBox(height: 15),
+                          _buildPasswordField('CONTRASEÑA:', _passwordController, _obscurePassword, () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          }),
+                          const SizedBox(height: 15),
+                          _buildPasswordField('CONFIRMA CONTRASEÑA:', _confirmPasswordController, _obscureConfirmPassword, () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          }),
                           const SizedBox(height: 30),
-                          TextField(
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                              labelText: 'NOMBRE:',
-                              hintText: 'Ingrese su Nombre',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _emailController,
-                            decoration: InputDecoration(
-                              labelText: 'CORREO:',
-                              hintText: 'Ingrese su Correo',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            decoration: InputDecoration(
-                              labelText: 'CONTRASEÑA:',
-                              hintText: 'Ingrese su contraseña',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide.none,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscureConfirmPassword,
-                            decoration: InputDecoration(
-                              labelText: 'CONFIRMA CONTRASEÑA:',
-                              hintText: 'Confirme su contraseña',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: BorderSide.none,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
+
+                          // Botones
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -159,9 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
+                                onPressed: () => Navigator.pop(context),
                                 child: const Text(
                                   'VOLVER',
                                   style: TextStyle(
@@ -201,23 +146,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
-
-          // Icono del gato (subido un poco más)
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.20, // 👈 antes estaba en 0.28
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/icono.png',
-                height: 120,
-              ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Métodos auxiliares para no repetir código
+  Widget _buildTextField(String label, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(String label, TextEditingController controller, bool obscure, VoidCallback toggle) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+          onPressed: toggle,
+        ),
       ),
     );
   }

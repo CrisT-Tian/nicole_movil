@@ -302,7 +302,7 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
             top: 40,
             child: Image.asset(
               'assets/icono.png',
-              height: 120,
+              height: 250,
             ),
           ),
         ],

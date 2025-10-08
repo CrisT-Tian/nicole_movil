@@ -38,7 +38,7 @@ class InicioScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Image.asset(
                 'assets/icono.png',
-                height: 120,
+                height: 300,
               ),
               const SizedBox(height: 40),
               ElevatedButton(

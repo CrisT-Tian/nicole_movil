@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'editar_informacion_screen.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt; // 👈 Import
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../services/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final int edad;
@@ -23,6 +24,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final ApiService api = ApiService();
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, String>> _messages = [];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -33,7 +35,6 @@ class _ChatScreenState extends State<ChatScreen> {
   late List<String> _gustos;
   late List<String> _alergias;
 
-  // 👇 Variables de voz
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
@@ -49,27 +50,36 @@ class _ChatScreenState extends State<ChatScreen> {
     _speech = stt.SpeechToText();
   }
 
+  /// 👉 Método para cerrar sesión
   void _showLogoutDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('¿esto es un adiós?'),
-          content: const Text('¿estas seguro de que quieres abandonar tu sesión?'),
+          title: const Text('¿Esto es un adiós?'),
+          content: const Text(
+            '¿Estás seguro de que quieres abandonar tu sesión?',
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('VOLVER', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'VOLVER',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacementNamed('/');
               },
-              child: const Text('CERRAR SESIÓN', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'CERRAR SESIÓN',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ],
         );
@@ -77,22 +87,32 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
+  /// 👉 Método para enviar mensaje
+  void _sendMessage() async {
+    final userMessage = _messageController.text.trim();
+    if (userMessage.isEmpty) return;
+
+    setState(() {
+      _messages.add({'text': userMessage, 'sender': 'user'});
+      _messageController.clear();
+    });
+
+    try {
+      final botReply = await api.sendMessage(userMessage);
       setState(() {
-        _messages.add({'text': _messageController.text, 'sender': 'user'});
-        if (_messages.length == 1) {
-          _messages.add({
-            'text': '¡Hola! Bienvenido al chat, estoy aquí para ayudarte 😊',
-            'sender': 'bot'
-          });
-        }
-        _messageController.clear();
+        _messages.add({'text': botReply, 'sender': 'bot'});
+      });
+    } catch (e) {
+      setState(() {
+        _messages.add({
+          'text': '❌ Error al conectar con la IA: $e',
+          'sender': 'bot',
+        });
       });
     }
   }
 
-  // 👇 Método para manejar el micrófono
+  /// 👉 Método para manejar el micrófono
   void _toggleListening() async {
     if (_isListening) {
       setState(() => _isListening = false);
@@ -109,7 +129,6 @@ class _ChatScreenState extends State<ChatScreen> {
           },
         );
 
-        // Auto stop después de 8 segundos sin hablar
         Future.delayed(const Duration(seconds: 8), () {
           if (_isListening) {
             _speech.stop();
@@ -145,15 +164,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               ListTile(
-                title: const Text('Edad', style: TextStyle(color: Colors.black)),
+                title: const Text(
+                  'Edad',
+                  style: TextStyle(color: Colors.black),
+                ),
                 trailing: _infoBox('$_edad'),
               ),
               ListTile(
-                title: const Text('Peso', style: TextStyle(color: Colors.black)),
+                title: const Text(
+                  'Peso',
+                  style: TextStyle(color: Colors.black),
+                ),
                 trailing: _infoBox('$_peso'),
               ),
               ListTile(
-                title: const Text('Altura', style: TextStyle(color: Colors.black)),
+                title: const Text(
+                  'Altura',
+                  style: TextStyle(color: Colors.black),
+                ),
                 trailing: _infoBox('$_altura'),
               ),
               const SizedBox(height: 10),
@@ -170,12 +198,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditarInformacionScreen(
-                          gustosSeleccionados: _gustos,
-                          peso: _peso,
-                          altura: _altura,
-                          alergias: _alergias,
-                        ),
+                        builder:
+                            (context) => EditarInformacionScreen(
+                              gustosSeleccionados: _gustos,
+                              peso: _peso,
+                              altura: _altura,
+                              alergias: _alergias,
+                            ),
                       ),
                     );
                     if (result != null && result is Map<String, dynamic>) {
@@ -188,7 +217,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       });
                     }
                   },
-                  child: const Text('EDITAR INFORMACIÓN', style: TextStyle(color: Colors.black)),
+                  child: const Text(
+                    'EDITAR INFORMACIÓN',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -202,7 +234,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   onPressed: _showLogoutDialog,
-                  child: const Text('CERRAR SESIÓN', style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    'CERRAR SESIÓN',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
@@ -230,12 +265,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               actions: [
                 GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _messages.clear();
-                    });
-                  },
-                  child: Image.asset('assets/icono.png', height: 40),
+                  onTap: () => setState(() => _messages.clear()),
+                  child: Image.asset('assets/icono.png', height: 250),
                 ),
                 const SizedBox(width: 10),
               ],
@@ -247,13 +278,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemBuilder: (context, index) {
                   final isUser = _messages[index]['sender'] == 'user';
                   return Align(
-                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment:
+                        isUser ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
                       constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width * 0.7,
                       ),
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isUser ? Colors.yellow[100] : Colors.white,
                         borderRadius: BorderRadius.circular(15),
@@ -286,9 +321,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(_isListening ? Icons.mic_off : Icons.mic,
-                        color: _isListening ? Colors.red : Colors.black),
-                    onPressed: _toggleListening, // 👈 Aquí la acción de voz
+                    icon: Icon(
+                      _isListening ? Icons.mic_off : Icons.mic,
+                      color: _isListening ? Colors.red : Colors.black,
+                    ),
+                    onPressed: _toggleListening,
                   ),
                   IconButton(
                     icon: const Icon(Icons.send),

@@ -73,14 +73,10 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
 
   @override
   Widget build(BuildContext context) {
-    const double iconSize = 110;
-    const double iconTop = 60;
-    final double blurTop = iconTop + iconSize * 0.5;
-
     return Scaffold(
       body: Stack(
         children: [
-          // 1) Fondo con imagen
+          // Fondo de imagen
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -92,11 +88,9 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
             ),
           ),
 
-          Positioned(
-            top: blurTop,
-            left: 0,
-            right: 0,
-            bottom: 0,
+          // Contenedor con blur, más abajo
+          Positioned.fill(
+            top: 140, // 🔽 Bajamos el inicio del blur (antes era 0)
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(32),
@@ -116,10 +110,15 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        const SizedBox(height: 20),
+
                         const Text(
                           "Ayúdanos a conocerte más",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 15),
                         const Text(
@@ -129,7 +128,7 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                         ),
                         const SizedBox(height: 25),
 
-                        // CAMPO NUEVO: Fecha de nacimiento
+                        // Fecha de nacimiento
                         TextField(
                           controller: _fechaNacController,
                           readOnly: true,
@@ -139,27 +138,26 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                             filled: true,
                             fillColor: Colors.white,
                             suffixIcon: const Icon(Icons.calendar_today),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 15),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: const BorderSide(color: Colors.black, width: 1.2),
+                              borderSide:
+                                  const BorderSide(color: Colors.black, width: 1.2),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 15),
 
                         Row(
                           children: [
-                            Expanded(child: _buildTextField("Peso (kilos)", TextInputType.number)),
+                            Expanded(
+                                child: _buildTextField(
+                                    "Peso (kilos)", TextInputType.number)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: TextField(
@@ -170,18 +168,16 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                                   hintText: "Altura (metros)",
                                   filled: true,
                                   fillColor: Colors.white,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 15, vertical: 15),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: BorderSide.none,
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(color: Colors.black, width: 1.2),
+                                    borderSide: const BorderSide(
+                                        color: Colors.black, width: 1.2),
                                   ),
                                 ),
                               ),
@@ -197,7 +193,8 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
                                   ),
@@ -218,14 +215,16 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 15),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
                                   ),
                                 ),
                                 onPressed: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const ChatScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const ChatScreen()),
                                 ),
                                 child: const Text(
                                   'FINALIZAR',
@@ -240,8 +239,10 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        const Text("N.I.C.O.L.E  |  Alpha 22",
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          "N.I.C.O.L.E  |  Alpha 22",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ],
                     ),
                   ),
@@ -250,14 +251,15 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
             ),
           ),
 
+          // 🐱 Icono fijo arriba del blur
           Positioned(
-            top: iconTop,
+            top: 60,
             left: 0,
             right: 0,
             child: Center(
               child: Image.asset(
                 'assets/icono.png',
-                height: iconSize,
+                height: 200,
               ),
             ),
           ),
@@ -266,7 +268,6 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
     );
   }
 
-  // Inputs normales
   Widget _buildTextField(String hint, TextInputType type) {
     return TextField(
       keyboardType: type,
@@ -274,18 +275,16 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
         hintText: hint,
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: Colors.black, width: 1.2),
+          borderSide:
+              const BorderSide(color: Colors.black, width: 1.2),
         ),
       ),
     );

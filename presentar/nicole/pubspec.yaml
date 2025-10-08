@@ -1,29 +1,26 @@
 name: nicole
-description: "A new Flutter project."
+description: "Tu descripción aquí"
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.2
+  sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations: # 👈 Agregada
-    sdk: flutter
+  http: ^1.2.2
 
+  # Aquí van otras dependencias que tengas
   cupertino_icons: ^1.0.8
-  speech_to_text: ^6.6.0   # 👈 Dependencia agregada para reconocimiento de voz
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/fondo.png
-    - assets/icono.png
+    - assets/

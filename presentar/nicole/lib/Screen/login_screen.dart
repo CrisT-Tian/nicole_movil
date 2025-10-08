@@ -70,12 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 1),
                   Image.asset(
                     'assets/icono.png',
-                    height: 100,
+                    height: 260,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 2),
 
                   // Campo correo
                   TextField(
