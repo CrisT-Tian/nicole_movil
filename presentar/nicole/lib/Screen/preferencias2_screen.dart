@@ -1,61 +1,43 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'chat_screen.dart';
+import '../services/api_service.dart';
+import 'verificar_screen.dart';
 
 class Preferencias2Screen extends StatefulWidget {
-  const Preferencias2Screen({super.key});
+  final String correo;
+  final String sabor;
+  final String alergias;
+
+  const Preferencias2Screen({
+    super.key,
+    required this.correo,
+    required this.sabor,
+    required this.alergias,
+  });
 
   @override
   State<Preferencias2Screen> createState() => _Preferencias2ScreenState();
 }
 
 class _Preferencias2ScreenState extends State<Preferencias2Screen> {
+  final TextEditingController _pesoController = TextEditingController();
   final TextEditingController _alturaController = TextEditingController();
   final TextEditingController _fechaNacController = TextEditingController();
-
+  bool _isLoading = false;
   DateTime? _fechaNacimiento;
 
   @override
   void dispose() {
+    _pesoController.dispose();
     _alturaController.dispose();
     _fechaNacController.dispose();
     super.dispose();
   }
 
-  void _formatAltura(String value) {
-    if (value.isEmpty) return;
-
-    String cleanValue = value.replaceAll('.', '').replaceAll(',', '');
-    int? numValue = int.tryParse(cleanValue);
-    if (numValue == null) return;
-
-    if (numValue > 300) {
-      numValue = 300;
-    }
-
-    String formatted;
-    if (numValue <= 99) {
-      formatted = numValue.toString();
-    } else {
-      String strVal = numValue.toString().padLeft(3, '0');
-      String metros = strVal.substring(0, strVal.length - 2);
-      String centimetros = strVal.substring(strVal.length - 2);
-      formatted = "$metros.$centimetros";
-    }
-
-    if (_alturaController.text != formatted) {
-      _alturaController.value = TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
-    }
-  }
-
   Future<void> _seleccionarFecha(BuildContext context) async {
-    DateTime fechaInicial = DateTime(2000, 1, 1);
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: fechaInicial,
+      initialDate: DateTime(2000, 1, 1),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       locale: const Locale('es', 'ES'),
@@ -64,10 +46,48 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
       setState(() {
         _fechaNacimiento = picked;
         _fechaNacController.text =
-            "${picked.day.toString().padLeft(2, '0')}/"
-            "${picked.month.toString().padLeft(2, '0')}/"
-            "${picked.year}";
+            "${picked.day}/${picked.month}/${picked.year}";
       });
+    }
+  }
+
+  Future<void> _guardarPreferencias() async {
+    if (_pesoController.text.isEmpty ||
+        _alturaController.text.isEmpty ||
+        _fechaNacimiento == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor completa todos los campos.")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final response = await ApiService().guardarPreferencias(
+      correo: widget.correo,
+      sabor: widget.sabor,
+      alergias: widget.alergias,
+      peso: _pesoController.text.trim(),
+      altura: _alturaController.text.trim(),
+      fechaNacimiento: _fechaNacimiento!.toIso8601String(),
+    );
+
+    setState(() => _isLoading = false);
+
+    if (response["success"] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response["message"] ?? "Datos guardados.")),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VerificarScreen(correo: widget.correo),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response["message"] ?? "Error al guardar.")),
+      );
     }
   }
 
@@ -76,7 +96,7 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fondo de imagen
+          // Fondo general
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -88,9 +108,9 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
             ),
           ),
 
-          // Contenedor con blur, más abajo
+          // Contenedor blur principal
           Positioned.fill(
-            top: 140, // 🔽 Bajamos el inicio del blur (antes era 0)
+            top: 140,
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(32),
@@ -110,8 +130,6 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        const SizedBox(height: 20),
-
                         const Text(
                           "Ayúdanos a conocerte más",
                           textAlign: TextAlign.center,
@@ -120,92 +138,68 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 10),
+
+                        // Texto descriptivo
                         const Text(
                           "¡Por fin! Estás a un solo paso de degustar nuevos platillos, solo déjanos saber un poco más sobre ti.",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 15, color: Colors.black87),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
                         ),
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 20),
 
-                        // Fecha de nacimiento
+                        // Campos del formulario
                         TextField(
                           controller: _fechaNacController,
                           readOnly: true,
                           onTap: () => _seleccionarFecha(context),
-                          decoration: InputDecoration(
-                            hintText: "Fecha de nacimiento",
-                            filled: true,
-                            fillColor: Colors.white,
-                            suffixIcon: const Icon(Icons.calendar_today),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 15),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide:
-                                  const BorderSide(color: Colors.black, width: 1.2),
-                            ),
+                          decoration: _inputDecoration(
+                            hint: "Fecha de nacimiento",
+                            icon: Icons.calendar_today,
                           ),
                         ),
                         const SizedBox(height: 15),
-
                         Row(
                           children: [
                             Expanded(
-                                child: _buildTextField(
-                                    "Peso (kilos)", TextInputType.number)),
+                              child: TextField(
+                                controller: _pesoController,
+                                keyboardType: TextInputType.number,
+                                decoration: _inputDecoration(hint: "Peso (kg)"),
+                              ),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: TextField(
                                 controller: _alturaController,
                                 keyboardType: TextInputType.number,
-                                onChanged: _formatAltura,
-                                decoration: InputDecoration(
-                                  hintText: "Altura (metros)",
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 15),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                        color: Colors.black, width: 1.2),
-                                  ),
+                                decoration: _inputDecoration(
+                                  hint: "Altura (m)",
                                 ),
                               ),
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 30),
-
                         Row(
                           children: [
                             Expanded(
                               child: ElevatedButton(
+                                onPressed: () => Navigator.pop(context),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
                                   ),
                                 ),
-                                onPressed: () => Navigator.pop(context),
                                 child: const Text(
                                   'VOLVER',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
                                   ),
                                 ),
                               ),
@@ -213,35 +207,28 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
                             const SizedBox(width: 15),
                             Expanded(
                               child: ElevatedButton(
+                                onPressed:
+                                    _isLoading ? null : _guardarPreferencias,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
                                   ),
                                 ),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const ChatScreen()),
-                                ),
-                                child: const Text(
-                                  'FINALIZAR',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.black,
+                                      )
+                                    : const Text(
+                                        'FINALIZAR',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "N.I.C.O.L.E  |  Alpha 22",
-                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -251,7 +238,7 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
             ),
           ),
 
-          // 🐱 Icono fijo arriba del blur
+          // 🆕 Icono encima del contenedor blur
           Positioned(
             top: 60,
             left: 0,
@@ -259,7 +246,8 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
             child: Center(
               child: Image.asset(
                 'assets/icono.png',
-                height: 200,
+                height: 100,
+                width: 100,
               ),
             ),
           ),
@@ -268,24 +256,20 @@ class _Preferencias2ScreenState extends State<Preferencias2Screen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextInputType type) {
-    return TextField(
-      keyboardType: type,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide:
-              const BorderSide(color: Colors.black, width: 1.2),
-        ),
+  InputDecoration _inputDecoration({required String hint, IconData? icon}) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      suffixIcon: icon != null ? Icon(icon) : null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.black, width: 1.2),
       ),
     );
   }

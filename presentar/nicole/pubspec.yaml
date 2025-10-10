@@ -1,26 +1,37 @@
-name: nicole
-description: "Tu descripción aquí"
+name: NICOLE
+description: "A new Flutter project."
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.2.0 <4.0.0"
+  sdk: ^3.7.2
 
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.2
-
-  # Aquí van otras dependencias que tengas
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.2.1
+  shared_preferences: ^2.3.2
   cupertino_icons: ^1.0.8
+  speech_to_text: ^7.3.0
+  url_launcher: ^6.2.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.12.0  # <-- Agregado para cambiar el icono
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/
+    - assets/fondo.png
+    - assets/icono.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo3-512.png"  # <-- Tu logo

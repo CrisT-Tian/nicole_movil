@@ -1,19 +1,22 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import 'preferencias2_screen.dart';
 
 class Preferencias1Screen extends StatefulWidget {
-  const Preferencias1Screen({super.key});
+  final String correo;
+  const Preferencias1Screen({super.key, required this.correo});
 
   @override
   State<Preferencias1Screen> createState() => _Preferencias1ScreenState();
 }
 
 class _Preferencias1ScreenState extends State<Preferencias1Screen> {
-  String? _selectedSabor;
+  // 🔹 Cambiado: antes era String? _selectedSabor;
+  final List<String> _saboresSeleccionados = [];
+
   bool? _esAlergico;
-  String? _selectedAlergia;
-  final TextEditingController _otraAlergiaController = TextEditingController();
+  final List<String> _alergiasSeleccionadas = [];
 
   final List<String> _alergiasComunes = [
     "Ninguna",
@@ -25,10 +28,16 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
     "Mariscos",
     "Huevo",
     "Pescado",
-    "otras"
+    "Otras",
   ];
 
-  final List<String> _alergiasSeleccionadas = [];
+  final TextEditingController _otraAlergiaController = TextEditingController();
+
+  @override
+  void dispose() {
+    _otraAlergiaController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +55,7 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
             ),
           ),
 
-          // Contenedor con blur
+          // Contenedor blur
           Align(
             alignment: Alignment.bottomCenter,
             child: ClipRRect(
@@ -70,7 +79,7 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 2),
                         const Text(
                           "Ayúdanos\na conocerte más",
                           textAlign: TextAlign.center,
@@ -87,31 +96,45 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Sabores
+                        // 🔹 Sabores (MULTISELECCIÓN)
                         Wrap(
                           spacing: 10,
                           runSpacing: 10,
                           alignment: WrapAlignment.center,
                           children: [
-                            "Salado", "Dulce", "Amargo", "Ácido", "Picante", "Umami"
+                            "Salado",
+                            "Dulce",
+                            "Amargo",
+                            "Ácido",
+                            "Picante",
+                            "Umami",
                           ].map((sabor) {
+                            final isSelected =
+                                _saboresSeleccionados.contains(sabor);
                             return ChoiceChip(
                               label: Text(sabor),
-                              selected: _selectedSabor == sabor,
+                              selected: isSelected,
                               onSelected: (selected) {
                                 setState(() {
-                                  _selectedSabor = selected ? sabor : null;
+                                  if (selected) {
+                                    _saboresSeleccionados.add(sabor);
+                                  } else {
+                                    _saboresSeleccionados.remove(sabor);
+                                  }
                                 });
                               },
                             );
                           }).toList(),
                         ),
+
                         const SizedBox(height: 20),
 
-                        // Pregunta alergias
                         const Text(
                           "¿Eres alérgico a algo?",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 10),
 
@@ -120,18 +143,19 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                           children: [
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _esAlergico == false ? Colors.black : Colors.white,
-                                foregroundColor: _esAlergico == false ? Colors.white : Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: const BorderSide(color: Colors.black),
-                                ),
+                                backgroundColor:
+                                    _esAlergico == false
+                                        ? Colors.black
+                                        : Colors.white,
+                                foregroundColor:
+                                    _esAlergico == false
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
                                   _esAlergico = false;
                                   _alergiasSeleccionadas.clear();
-                                  _selectedAlergia = null;
                                 });
                               },
                               child: const Text("No"),
@@ -139,12 +163,14 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                             const SizedBox(width: 10),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _esAlergico == true ? Colors.black : Colors.white,
-                                foregroundColor: _esAlergico == true ? Colors.white : Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: const BorderSide(color: Colors.black),
-                                ),
+                                backgroundColor:
+                                    _esAlergico == true
+                                        ? Colors.black
+                                        : Colors.white,
+                                foregroundColor:
+                                    _esAlergico == true
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -155,12 +181,10 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 15),
 
-                        // Dropdown de alergias
                         if (_esAlergico == true) ...[
+                          const SizedBox(height: 10),
                           DropdownButtonFormField<String>(
-                            value: _selectedAlergia,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.white,
@@ -170,17 +194,16 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                               ),
                             ),
                             hint: const Text("Selecciona una alergia"),
-                            items: _alergiasComunes.map((alergia) {
-                              return DropdownMenuItem(
-                                value: alergia,
-                                child: Text(alergia),
-                              );
-                            }).toList(),
+                            items:
+                                _alergiasComunes.map((a) {
+                                  return DropdownMenuItem(
+                                    value: a,
+                                    child: Text(a),
+                                  );
+                                }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                _selectedAlergia = value;
                                 if (value != null &&
-                                    value != "otras" &&
                                     value != "Ninguna" &&
                                     !_alergiasSeleccionadas.contains(value)) {
                                   _alergiasSeleccionadas.add(value);
@@ -190,84 +213,54 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                           ),
                           const SizedBox(height: 10),
 
-                          // Campo de texto cuando selecciona "otras"
-                          if (_selectedAlergia == "otras") ...[
-                            const Text(
-                              "Si su alergia no se muestra en la lista, escriba aquí brevemente en qué consiste su alergia",
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: _otraAlergiaController,
-                              maxLength: 20,
-                              decoration: InputDecoration(
-                                hintText: 'Escribe tu alergia (máx 20 caracteres)',
-                                counterText: "",
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              onSubmitted: (val) {
-                                if (val.isNotEmpty &&
-                                    !_alergiasSeleccionadas.contains(val)) {
-                                  setState(() {
-                                    _alergiasSeleccionadas.add(val);
-                                    _otraAlergiaController.clear();
-                                  });
-                                }
-                              },
-                            ),
-                          ],
-
-                          // Chips con alergias seleccionadas
-                          if (_alergiasSeleccionadas.isNotEmpty) ...[
-                            const SizedBox(height: 10),
+                          if (_alergiasSeleccionadas.isNotEmpty)
                             Wrap(
                               spacing: 8,
-                              children: _alergiasSeleccionadas.map((a) {
-                                return Chip(
-                                  label: Text(a),
-                                  onDeleted: () {
-                                    setState(() {
-                                      _alergiasSeleccionadas.remove(a);
-                                    });
-                                  },
-                                );
-                              }).toList(),
+                              children:
+                                  _alergiasSeleccionadas.map((a) {
+                                    return Chip(
+                                      label: Text(a),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _alergiasSeleccionadas.remove(a);
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
                             ),
-                          ],
                         ],
 
-                        const SizedBox(height: 20),
-
-                        // Botones
+                        const SizedBox(height: 25),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 15,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
+                              onPressed: () => Navigator.pop(context),
                               child: const Text(
                                 'VOLVER',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 15,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -276,19 +269,28 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const Preferencias2Screen(),
+                                    builder:
+                                        (_) => Preferencias2Screen(
+                                          correo: widget.correo,
+                                          // 🔹 Ahora enviamos varios sabores
+                                          sabor:
+                                              _saboresSeleccionados.join(', '),
+                                          alergias:
+                                              _alergiasSeleccionadas.join(', '),
+                                        ),
                                   ),
                                 );
                               },
                               child: const Text(
                                 'SIGUIENTE',
-                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        const Text("N.I.C.O.L.E  | Alpha 22"),
                       ],
                     ),
                   ),
@@ -297,13 +299,9 @@ class _Preferencias1ScreenState extends State<Preferencias1Screen> {
             ),
           ),
 
-          // Icono flotante
           Positioned(
-            top: 40,
-            child: Image.asset(
-              'assets/icono.png',
-              height: 250,
-            ),
+            top: 60,
+            child: Image.asset('assets/icono.png', height: 120),
           ),
         ],
       ),

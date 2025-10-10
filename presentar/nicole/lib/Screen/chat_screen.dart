@@ -1,23 +1,13 @@
 import 'package:flutter/material.dart';
-import 'editar_informacion_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import 'editar_informacion_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  final int edad;
-  final double peso;
-  final double altura;
-  final List<String> gustosSeleccionados;
-  final List<String> alergias;
+  final String correo;
 
-  const ChatScreen({
-    super.key,
-    this.edad = 0,
-    this.peso = 0,
-    this.altura = 0,
-    this.gustosSeleccionados = const [],
-    this.alergias = const [],
-  });
+  const ChatScreen({super.key, required this.correo});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -29,65 +19,72 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  late int _edad;
-  late double _peso;
-  late double _altura;
-  late List<String> _gustos;
-  late List<String> _alergias;
+  String _nombre = "";
+  String _correo = "";
+  int _edad = 0;
+  String _peso = "0";
+  String _altura = "0";
+  List<String> _gustos = [];
+  List<String> _alergias = [];
 
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  bool _loadingUser = true;
 
   @override
   void initState() {
     super.initState();
-    _edad = widget.edad;
-    _peso = widget.peso;
-    _altura = widget.altura;
-    _gustos = widget.gustosSeleccionados;
-    _alergias = widget.alergias;
-
     _speech = stt.SpeechToText();
+    _cargarUsuario();
   }
 
-  /// 👉 Método para cerrar sesión
-  void _showLogoutDialog() {
+  Future<void> _cargarUsuario() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final correoActual = widget.correo;
+    final data = await api.obtenerUsuario(correoActual);
+
+    if (data["success"] != false) {
+      setState(() {
+        _correo = data["correo"] ?? correoActual;
+        _nombre = data["nombre"] ?? "Usuario";
+        _edad = int.tryParse(data["edad"]?.toString() ?? "0") ?? 0;
+        _peso = data["peso"]?.toString() ?? "0";
+        _altura = data["altura"]?.toString() ?? "0";
+      });
+
+      await prefs.setString("correo", _correo);
+      await prefs.setString("nombre_us", _nombre);
+    }
+
+    setState(() => _loadingUser = false);
+  }
+
+  void _showLogoutDialog() async {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('¿Esto es un adiós?'),
-          content: const Text(
-            '¿Estás seguro de que quieres abandonar tu sesión?',
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'VOLVER',
-                style: TextStyle(color: Colors.black),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('¿Cerrar sesión?'),
+            content: const Text('¿Estás seguro de que quieres salir?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
               ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacementNamed('/');
-              },
-              child: const Text(
-                'CERRAR SESIÓN',
-                style: TextStyle(color: Colors.black),
+              TextButton(
+                onPressed: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  if (mounted) Navigator.of(context).pushReplacementNamed('/');
+                },
+                child: const Text('Cerrar sesión'),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          ),
     );
   }
 
-  /// 👉 Método para enviar mensaje
   void _sendMessage() async {
     final userMessage = _messageController.text.trim();
     if (userMessage.isEmpty) return;
@@ -104,19 +101,15 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } catch (e) {
       setState(() {
-        _messages.add({
-          'text': '❌ Error al conectar con la IA: $e',
-          'sender': 'bot',
-        });
+        _messages.add({'text': '❌ Error: $e', 'sender': 'bot'});
       });
     }
   }
 
-  /// 👉 Método para manejar el micrófono
   void _toggleListening() async {
     if (_isListening) {
-      setState(() => _isListening = false);
       _speech.stop();
+      setState(() => _isListening = false);
     } else {
       bool available = await _speech.initialize();
       if (available) {
@@ -141,6 +134,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loadingUser) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: Drawer(
@@ -155,34 +152,25 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: EdgeInsets.zero,
             children: [
               UserAccountsDrawerHeader(
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.5)),
-                accountName: const Text('Usuario001'),
-                accountEmail: null,
+                decoration: BoxDecoration(color: Colors.black.withOpacity(0.6)),
+                accountName: Text(_nombre),
+                accountEmail: Text(_correo),
                 currentAccountPicture: const CircleAvatar(
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: Colors.black, size: 50),
+                  child: Icon(Icons.person, color: Colors.black, size: 45),
                 ),
               ),
               ListTile(
-                title: const Text(
-                  'Edad',
-                  style: TextStyle(color: Colors.black),
-                ),
-                trailing: _infoBox('$_edad'),
+                title: const Text('Edad'),
+                trailing: _infoBox('$_edad años'),
               ),
               ListTile(
-                title: const Text(
-                  'Peso',
-                  style: TextStyle(color: Colors.black),
-                ),
-                trailing: _infoBox('$_peso'),
+                title: const Text('Peso'),
+                trailing: _infoBox('$_peso kg'),
               ),
               ListTile(
-                title: const Text(
-                  'Altura',
-                  style: TextStyle(color: Colors.black),
-                ),
-                trailing: _infoBox('$_altura'),
+                title: const Text('Altura'),
+                trailing: _infoBox('$_altura m'),
               ),
               const SizedBox(height: 10),
               Padding(
@@ -204,16 +192,20 @@ class _ChatScreenState extends State<ChatScreen> {
                               peso: _peso,
                               altura: _altura,
                               alergias: _alergias,
+                              correo: _correo,
                             ),
                       ),
                     );
                     if (result != null && result is Map<String, dynamic>) {
                       setState(() {
-                        _edad = result['edad'] ?? _edad;
-                        _peso = result['peso'] ?? _peso;
-                        _altura = result['altura'] ?? _altura;
-                        _gustos = result['gustos'] ?? _gustos;
-                        _alergias = result['alergias'] ?? _alergias;
+                        _peso = result['peso']?.toString() ?? _peso;
+                        _altura = result['altura']?.toString() ?? _altura;
+                        _gustos = List<String>.from(
+                          result['gustos'] ?? _gustos,
+                        );
+                        _alergias = List<String>.from(
+                          result['alergias'] ?? _alergias,
+                        );
                       });
                     }
                   },
@@ -260,13 +252,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 icon: const Icon(Icons.menu, color: Colors.black),
                 onPressed: () => _scaffoldKey.currentState?.openDrawer(),
               ),
-              title: const Center(
-                child: Text('Chat', style: TextStyle(color: Colors.black)),
-              ),
+              title: const Text('Chat', style: TextStyle(color: Colors.black)),
+              centerTitle: true,
               actions: [
                 GestureDetector(
                   onTap: () => setState(() => _messages.clear()),
-                  child: Image.asset('assets/icono.png', height: 250),
+                  child: Image.asset('assets/icono.png', height: 40),
                 ),
                 const SizedBox(width: 10),
               ],
@@ -281,9 +272,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     alignment:
                         isUser ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.7,
-                      ),
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

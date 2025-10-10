@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // 👈 Importante
 import 'Screen/inicio_screen.dart';
+import 'Screen/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         Locale('es', 'ES'), // Español
         Locale('en', 'US'), // Inglés
       ],
-      home: const InicioScreen(),
+      home: const SplashScreen(),
     );
   }
 }
