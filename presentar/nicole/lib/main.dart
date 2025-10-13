@@ -15,9 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'NICOLE',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
+      theme: ThemeData(useMaterial3: true),
       // 👇 Esto le da soporte al calendario (date picker) y otros widgets con idiomas
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

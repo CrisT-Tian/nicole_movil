@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Cambia si tu ruta es distinta
-  final String apiUrl = "https://nicole.sytes.net/api";
   final String baseUrl = "http://nicoleia.servehttp.com:90/v1/chat/completions";
+  final String apiUrl = "https://nicole.sytes.net/api/";
 
   // ---------- IA (Chat) ----------
   Future<String> sendMessage(String message) async {

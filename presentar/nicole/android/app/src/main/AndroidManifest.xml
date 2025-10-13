@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+
     package="com.example.nicoleapp">
 
     <!-- Permite consultar apps que pueden abrir texto o URLs -->
@@ -20,7 +21,11 @@
     <application
         android:label="nicole"
         android:icon="@mipmap/ic_launcher"
-        android:theme="@style/LaunchTheme">
+        android:theme="@style/LaunchTheme"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+
 
         <activity
             android:name=".MainActivity"
@@ -47,7 +52,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            
 
     </application>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
 </manifest>

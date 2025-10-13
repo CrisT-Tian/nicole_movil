@@ -117,8 +117,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30),
-                bottomLeft:Radius.circular(30),
-                bottomRight: Radius.circular(30),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
@@ -128,7 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        Image.asset('assets/icono.png', height: 100),
+                        Image.asset('assets/icono.png', height: 80),
                         const SizedBox(height: 20),
                         const Text(
                           "Recuperar Contraseña",
@@ -137,46 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
-                        // 🔹 Texto explicativo en paso 1 y paso 2
-                        if (paso == 1 ) ...[
-                          const SizedBox(height: 10),
-                          const Text(
-                            "¿olvidaste tu contraseña?\n No te preocupes, aquí puedes recuperarla",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                          // 🔹 Texto explicativo en paso 1 y paso 2
-                        if (paso == 2 ) ...[
-                          const SizedBox(height: 10),
-                          const Text(
-                            "A continuación enviamos un código de verificación para que puedas recuperar tu contraseña",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                          // 🔹 Texto explicativo en paso 1 y paso 2
-                        if (paso == 3 ) ...[
-                          const SizedBox(height: 10),
-                          const Text(
-                            "A continuación ingresa una nueva contraseña.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+                        const SizedBox(height: 25),
 
                         if (paso == 1) _campoCorreo(),
                         if (paso == 2) _campoCodigo(),
@@ -195,21 +154,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                           ),
                           onPressed: _isLoading ? null : _procesar,
-                          child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : Text(
-                                  paso == 1
-                                      ? "       ENVIAR CÓDIGO       "
-                                      : paso == 2
-                                          ? "     VERIFICAR CÓDIGO    "
-                                          : "CAMBIAR CONTRASEÑA",
-                                  style: const TextStyle(
+                          child:
+                              _isLoading
+                                  ? const CircularProgressIndicator(
                                     color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                  )
+                                  : Text(
+                                    paso == 1
+                                        ? "ENVIAR CÓDIGO"
+                                        : paso == 2
+                                        ? "VERIFICAR CÓDIGO"
+                                        : "CAMBIAR CONTRASEÑA",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
                         ),
 
                         const SizedBox(height: 20),
@@ -241,7 +201,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                          const SizedBox(height: 40),
                       ],
                     ),
                   ),
